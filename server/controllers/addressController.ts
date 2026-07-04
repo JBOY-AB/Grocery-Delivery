@@ -12,7 +12,7 @@ export const getAddresses = async (req: Request, res: Response) => {
     res.json({ addresses })
 }
 
-// Address
+// add Address
 // POST /api/addresses
 
 export const addAddress = async (req: Request, res: Response) => {
@@ -54,7 +54,7 @@ export const addAddress = async (req: Request, res: Response) => {
         where: { userId: req.user!.id },
         orderBy: { createdAt: "asc" }
     })
-    res.status(201).json({ addAddress })
+    res.status(201).json({ addresses })
 }
 
 

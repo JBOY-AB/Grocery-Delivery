@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { Product } from "../types";
-import { categoriesData, dummyProducts } from "../assets/assets";
+import { categoriesData } from "../assets/assets";
 import {
   ChevronDown,
   Home,
@@ -12,6 +12,8 @@ import {
 import ProductCard from "../components/ProductCard";
 import Loading from "../components/Loading";
 import FilterPanel from "../components/FilterPanel";
+import api from "../config/api";
+import toast from "react-hot-toast";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -30,16 +32,25 @@ const Products = () => {
 
   const fetchProducts = async () => {
     setLoading(true);
+    try {
+      const params = new URLSearchParams()
+      if (category) params.set('/category', category)
+      if (organic) params.set('organic', organic)
+      if (sort) params.set('sort', category)
+      if (sort) params.set('sort', sort)
+      if (maxPrice) params.set('maxPrice', maxPrice)
+      params.set("page", String(page))
+      params.set("limit", "12")
 
-    setProducts(
-      dummyProducts.filter(
-        (p) => p.category === category || category === ""
-      )
-    );
-
-    setLoading(false);
-  };
-
+      const { data } = await api.get(`/products?${params.toString()}`);
+      setProducts(data.products)
+      setTotalPages(data.pages)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message);
+    } finally {
+      setLoading(false)
+    }
+  }
   const updateFilter = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
 
@@ -196,7 +207,7 @@ const Products = () => {
                   (product) =>
                     product.stock > 0 && (
                       <ProductCard
-                        key={product._id}
+                        key={product.id}
                         product={product}
                       />
                     )
@@ -219,11 +230,10 @@ const Products = () => {
 
                         scrollTo(0, 0);
                       }}
-                      className={`size-9 rounded-lg text-sm font-medium transition-colors ${
-                        page === i + 1
+                      className={`size-9 rounded-lg text-sm font-medium transition-colors ${page === i + 1
                           ? "bg-app-green text-white"
                           : "bg-white text-app-text-light hover:bg-app-cream"
-                      }`}
+                        }`}
                     >
                       {i + 1}
                     </button>

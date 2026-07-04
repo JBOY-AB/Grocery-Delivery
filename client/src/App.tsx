@@ -26,7 +26,7 @@ const App = () => {
   return (
     <>
       <Toaster position='top-right' toastOptions={{
-        duration: 300, style: {
+        duration: 1000, style: {
           background: "#1B3022", color: "#fff", borderRadius: "12px", fontSize:
             "14px"
         }

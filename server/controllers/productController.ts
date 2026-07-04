@@ -24,7 +24,7 @@ export const getProducts = async (req: Request, res: Response) => {
     const { category, search, minPrice, maxPrice, sort } = req.query;
 
     const where: any = {};
-    if (category && category !== "all") where.catagory = category as string;
+    if (category && category !== "all") where.category = category as string;
     if (search) where.name = {
         contains: search as string, mode:
             "insensitive"
@@ -32,7 +32,7 @@ export const getProducts = async (req: Request, res: Response) => {
     if (minPrice || maxPrice) {
         where.price = {};
         if (minPrice) where.price.gte = Number(minPrice)
-        if (maxPrice) where.price.gte = Number(maxPrice)
+        if (maxPrice) where.price.lte = Number(maxPrice)
     }
 
     const orderBy: any = {};
@@ -76,8 +76,10 @@ export const updateProduct = async (req: Request, res: Response) => {
     res.json({ product })
 }
 
-// POST /api/products/:id
+// delete /api/products/:id
 export const deleteProduct = async (req: Request, res: Response) => {
-    await prisma.product.delete({ where: { id: req.params.id as string } })
-    res.json({ message: "Deleted" })
+    await prisma.product.update({
+         where: { id: req.params.id as string }, 
+        data: {stock: Number(0)} })
+    res.json({ message: "Product Updated" })
 }

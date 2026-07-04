@@ -2,7 +2,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import type { Product } from "../types";
 import { useEffect, useState } from "react";
-import { dummyProducts } from "../assets/assets";
 import Loading from "../components/Loading";
 import {
   ArrowLeftIcon,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import DummyReviewsSection from "../assets/DummyReviewsSection";
 import ProductCard from "../components/ProductCard";
+import api from "../config/api";
 
 const ProductPage = () => {
   const currency =
@@ -44,37 +44,24 @@ const ProductPage = () => {
     useState(1);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(true)
+    setLocalQuantity(1)
+    window.scrollTo(0,0)
 
-    setLocalQuantity(1);
+    api.get(`/products/${id}`).then(({data})=>{
+      setProduct(data.product);
+      return api.get(`/products?category=${data.product.category}`)
+    }).then(({data})=>{
+      setRelatedProducts(data.products.filter((p: Product) => p.id !== id))
+    }).catch(()=> navigate("/products")).finally(()=> setLoading(false))
+  }, [id, navigate])
 
-    window.scrollTo(0, 0);
-
-    const foundProduct = dummyProducts.find(
-      (p) => p._id === id
-    );
-
-    setProduct(foundProduct || null);
-
-    setRelatedProducts(
-      foundProduct
-        ? dummyProducts.filter(
-          (p) =>
-            p.category === foundProduct.category &&
-            p._id !== foundProduct._id
-        )
-        : []
-    );
-
-    setLoading(false);
-  }, [id]);
 
   if (loading) return <Loading />;
-
   if (!product) return null;
 
   const cartItem = items.find(
-    (item) => item.product._id === product._id
+    (item) => item.product.id === product.id
   );
 
   const inCart = !!cartItem;
@@ -87,11 +74,11 @@ const ProductPage = () => {
     if (inCart) {
       if (cartItem.quantity > 1) {
         updateQuantity(
-          product._id,
+          product.id,
           cartItem.quantity - 1
         );
       } else {
-        removeFromCart(product._id);
+        removeFromCart(product.id);
       }
     } else {
       setLocalQuantity((prev) =>
@@ -104,7 +91,7 @@ const ProductPage = () => {
     if (displayQuantity < product.stock) {
       if (inCart) {
         updateQuantity(
-          product._id,
+          product.id,
           cartItem.quantity + 1
         );
       } else {
@@ -320,7 +307,7 @@ const ProductPage = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 xl:gap-8">
               {relatedProducts.slice(0, 5).map((rp) => (
-                <ProductCard key={rp._id} product={rp} />
+                <ProductCard key={rp.id} product={rp} />
               ))}
             </div>
           </section>
